@@ -1,7 +1,3 @@
-import numpy
-import pandas as pd
-import datetime
-
 import pandas as pd
 
 from datetime import timedelta
@@ -10,20 +6,18 @@ from tqdm import tqdm
 
 
 def preprocess():
-    def compute_train(grouped_speeds, events_df):
+    
+    def compute_train(grouped, speeds_df):
 
-        for name, group in tqdm(grouped_speeds):
-            events_relevant = events_df[events_df.KEY == name]
+        for name, group in tqdm(grouped):
+            speeds_relevant = speeds_df[speeds_df.KEY == name]
 
-            merged = pd.merge(group, events_relevant, on=['KEY'])
+            merged = pd.merge(group, speeds_relevant, on=['KEY'])
 
-            # Filtering
+            merged = merged[(merged.DATETIME_UTC >= merged['START_DATETIME_UTC'] - timedelta(minutes=8)) & (
+                    merged.DATETIME_UTC <= merged['START_DATETIME_UTC'] + timedelta(hours=1)) & (
+                                    merged.KM >= merged['KM_START'] - 5) & (merged.KM <= merged['KM_END'] + 5)]
 
-            merged = merged[(merged['START_DATETIME_UTC'] <= merged.DATETIME_UTC + timedelta(minutes=8)) & (
-                    merged['START_DATETIME_UTC'] >= merged.DATETIME_UTC + timedelta(hours=1)) & (
-                                    merged['KM_START'] <= merged.KM + 5) & (merged['KM_END'] >= merged.KM + 5)]
-
-            print(merged.head(10))
             if name == 0:
                 merged.to_csv(
                     'bip_assignment/dataset.csv')
@@ -39,9 +33,9 @@ def preprocess():
     events_df['START_DATETIME_UTC'] = pd.to_datetime(events_df['START_DATETIME_UTC'])
     events_df['END_DATETIME_UTC'] = pd.to_datetime(events_df['END_DATETIME_UTC'])
 
-    grouped_speeds = speeds_df.groupby('KEY')
+    grouped_events = events_df.groupby('KEY')
 
-    compute_train(grouped_speeds, events_df)
+    compute_train(grouped_events, speeds_df)
 
 
 if __name__ == "__main__":
