@@ -4,13 +4,33 @@ from datetime import timedelta
 
 from tqdm import tqdm
 
+CLUSTER_SIZE = 20000
 
 def preprocess():
     
     def compute_train(grouped, speeds_df):
+        processed=0
 
         for name, group in tqdm(grouped):
             speeds_relevant = speeds_df[speeds_df.KEY == name]
+
+            while speeds_relevant.shape[0] > CLUSTER_SIZE:
+                merged = pd.merge(group, speeds_relevant[:CLUSTER_SIZE], on=['KEY'])
+
+                merged = merged[(merged.DATETIME_UTC >= merged['START_DATETIME_UTC'] - timedelta(minutes=8)) & (
+                        merged.DATETIME_UTC <= merged['START_DATETIME_UTC'] + timedelta(hours=1)) & (
+                                        merged.KM >= merged['KM_START'] - 5) & (merged.KM <= merged['KM_END'] + 5)]
+
+                if processed == 0:
+                    merged.to_csv(
+                        'bip_assignment/dataset.csv')
+                    processed += 1
+                else:
+                    with open('bip_assignment/dataset.csv', 'a') as f:
+                        merged.to_csv(f, header=False)
+
+
+                speeds_relevant = speeds_relevant[CLUSTER_SIZE:]
 
             merged = pd.merge(group, speeds_relevant, on=['KEY'])
 
@@ -18,9 +38,10 @@ def preprocess():
                     merged.DATETIME_UTC <= merged['START_DATETIME_UTC'] + timedelta(hours=1)) & (
                                     merged.KM >= merged['KM_START'] - 5) & (merged.KM <= merged['KM_END'] + 5)]
 
-            if name == 0:
+            if processed == 0:
                 merged.to_csv(
                     'bip_assignment/dataset.csv')
+                processed += 1
             else:
                 with open('bip_assignment/dataset.csv', 'a') as f:
                     merged.to_csv(f, header=False)
