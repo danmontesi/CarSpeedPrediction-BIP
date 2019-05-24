@@ -5,11 +5,12 @@ from datetime import timedelta
 from tqdm import tqdm
 
 CLUSTER_SIZE = 20000
+DATASET = "bip_assignment/dataset_with_all_km.csv"
+
 
 def preprocess():
-    
     def compute_train(grouped, speeds_df):
-        processed=0
+        processed = 0
 
         for name, group in tqdm(grouped):
             speeds_relevant = speeds_df[speeds_df.KEY == name]
@@ -18,32 +19,33 @@ def preprocess():
                 merged = pd.merge(group, speeds_relevant[:CLUSTER_SIZE], on=['KEY'])
 
                 merged = merged[(merged.DATETIME_UTC >= merged['START_DATETIME_UTC'] - timedelta(minutes=8)) & (
-                        merged.DATETIME_UTC <= merged['START_DATETIME_UTC'] + timedelta(hours=1)) & (
-                                        merged.KM >= merged['KM_START'] - 5) & (merged.KM <= merged['KM_END'] + 5)]
+                        merged.DATETIME_UTC <= merged['START_DATETIME_UTC'] + timedelta(hours=1))
+                               # &(merged.KM >= merged['KM_START'] - 5) & (merged.KM <= merged['KM_END'] + 5)
+                ]
 
                 if processed == 0:
                     merged.to_csv(
-                        'bip_assignment/dataset.csv')
+                        DATASET)
                     processed += 1
                 else:
-                    with open('bip_assignment/dataset.csv', 'a') as f:
+                    with open(DATASET, 'a') as f:
                         merged.to_csv(f, header=False)
-
 
                 speeds_relevant = speeds_relevant[CLUSTER_SIZE:]
 
             merged = pd.merge(group, speeds_relevant, on=['KEY'])
 
             merged = merged[(merged.DATETIME_UTC >= merged['START_DATETIME_UTC'] - timedelta(minutes=8)) & (
-                    merged.DATETIME_UTC <= merged['START_DATETIME_UTC'] + timedelta(hours=1)) & (
-                                    merged.KM >= merged['KM_START'] - 5) & (merged.KM <= merged['KM_END'] + 5)]
+                    merged.DATETIME_UTC <= merged['START_DATETIME_UTC'] + timedelta(hours=1))
+                            #& (merged.KM >= merged['KM_START'] - 5) & (merged.KM <= merged['KM_END'] + 5)
+            ]
 
             if processed == 0:
                 merged.to_csv(
-                    'bip_assignment/dataset.csv')
+                    DATASET)
                 processed += 1
             else:
-                with open('bip_assignment/dataset.csv', 'a') as f:
+                with open(DATASET, 'a') as f:
                     merged.to_csv(f, header=False)
 
     speeds_df = pd.read_csv("bip_assignment/speeds_train.csv")
