@@ -35,7 +35,7 @@ def preprocess():
 
         road_df = pd.read_csv("bip_assignment/sensors.csv")
 
-        dataset = dataset.join(road_df, lsuffix='', rsuffix='_sensor')
+        dataset = dataset.merge(road_df, on=["KEY", "KM"])
 
         return dataset
 
@@ -50,11 +50,12 @@ def preprocess():
                 KM=chiavina[1]
                 STATION_ID=valorino[0]
 
-                weather_list= weather_list.append({'KM': KM, 'KEY': KEY, 'STATION_ID': STATION_ID}, ignore_index=True)
+                if KM.isdigit() and KEY.isdigit():
+                    weather_list= weather_list.append({'KM': int(KM), 'KEY': int(KEY), 'STATION_ID': STATION_ID}, ignore_index=True)
 
         print(weather_list.head())
 
-        dataset = dataset.join(weather_list, lsuffix='', rsuffix='_w')
+        dataset = dataset.merge(weather_list, on=["KEY", "KM"])
 
         return dataset
 
