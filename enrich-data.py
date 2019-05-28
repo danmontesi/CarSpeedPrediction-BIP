@@ -40,7 +40,7 @@ def preprocess():
         return dataset
 
     def add_weather_stationid(dataset):
-        weather_list=pd.DataFrame(columns=["KEY", "KM", "STATION_ID"])
+        weather_list=pd.DataFrame(columns=["KEY", "KM", "STATION_ID", "STATION_ID_2"])
         with open("bip_assignment/distances.csv") as f:
             for line in tqdm(f):
                 splitted=line.split("|")
@@ -49,9 +49,18 @@ def preprocess():
                 KEY=chiavina[0]
                 KM=chiavina[1]
                 STATION_ID=valorino[0]
+                STATION_ID_2=""
+                if len(valorino) > 2:
+                    STATION_ID_2=valorino[2]
+                STATION_ID_3 = ""
+                if len(valorino) > 4:
+                    STATION_ID_3 = valorino[4]
+                STATION_ID_4 = ""
+                if len(valorino) > 6:
+                    STATION_ID_4 = valorino[6]
 
                 if KM.isdigit() and KEY.isdigit():
-                    weather_list= weather_list.append({'KM': int(KM), 'KEY': int(KEY), 'STATION_ID': STATION_ID}, ignore_index=True)
+                    weather_list= weather_list.append({'KM': int(KM), 'KEY': int(KEY), 'STATION_ID': STATION_ID, 'STATION_ID_2': STATION_ID_2, 'STATION_ID_3': STATION_ID_3, 'STATION_ID_4': STATION_ID_4}, ignore_index=True)
 
         print(weather_list.head())
 

@@ -14,15 +14,15 @@ def preprocess():
 
 
         for name, group in tqdm(grouped):
-            print(name)
+            #print(name)
 
             weather_relevant = weather_df[weather_df.ID == name]
 
             for i in (group.index):
                 #line=group[group.index == i]
 
-                weather_very_relevant = weather_relevant[(group.at[i,'DATETIME_UTC'] >= weather_relevant.DATETIME_UTC - timedelta(hours=23))
-                                                         &  (group.at[i,'DATETIME_UTC'] <= weather_relevant.DATETIME_UTC + timedelta(hours=23))]
+                weather_very_relevant = weather_relevant[(group.at[i,'DATETIME_UTC'] >= weather_relevant.DATETIME_UTC - timedelta(hours=2))
+                                                         &  (group.at[i,'DATETIME_UTC'] <= weather_relevant.DATETIME_UTC + timedelta(hours=2))]
                 weather_very_relevant["TIME_WEATHER_DELTA"] = abs(weather_relevant.DATETIME_UTC - group.at[i,'DATETIME_UTC'])
                 #print(weather_very_relevant.head())
                 index = int(weather_very_relevant[["TIME_WEATHER_DELTA"]].idxmin())
@@ -32,6 +32,8 @@ def preprocess():
                 dataset.loc[i, 'MIN_TEMPERATURE'] = weather_very_relevant.at[index, "MIN_TEMPERATURE"]
                 dataset.loc[i, 'WEATHER'] = weather_very_relevant.at[index, "WEATHER"]
                 dataset.loc[i, 'DATETIME_UTC_WEATHER'] = weather_very_relevant.at[index, "DATETIME_UTC"]
+
+
 
 
 
@@ -57,6 +59,31 @@ def preprocess():
     print(dataset[dataset['STATION_ID'] == np.nan].head())
 
     compute_weather(grouped_dataset, weather_df)
+
+
+
+
+    print("Fixing missing values first try...")
+    missing_values = dataset[dataset.isnull().WEATHER == True]
+    print(missing_values.shape[0])
+    grouped_dataset = missing_values.groupby('STATION_ID_2')
+    compute_weather(grouped_dataset, weather_df)
+
+    print("Fixing missing values second try...")
+    missing_values = dataset[dataset.isnull().WEATHER == True]
+    print(missing_values.shape[0])
+    grouped_dataset = missing_values.groupby('STATION_ID_3')
+    compute_weather(grouped_dataset, weather_df)
+
+    print("Fixing missing values third try...")
+    missing_values = dataset[dataset.isnull().WEATHER == True]
+    print(missing_values.shape[0])
+    grouped_dataset = missing_values.groupby('STATION_ID_4')
+    compute_weather(grouped_dataset, weather_df)
+
+    print("Final missing:")
+    missing_values = dataset[dataset.isnull().WEATHER == True]
+    print(missing_values.shape[0])
 
     dataset.to_csv("./bip_assignment/dataset_3.csv")
 
