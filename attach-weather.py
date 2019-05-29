@@ -21,8 +21,8 @@ def preprocess():
             for i in (group.index):
                 #line=group[group.index == i]
 
-                weather_very_relevant = weather_relevant[(group.at[i,'DATETIME_UTC'] >= weather_relevant.DATETIME_UTC - timedelta(hours=2))
-                                                         &  (group.at[i,'DATETIME_UTC'] <= weather_relevant.DATETIME_UTC + timedelta(hours=2))]
+                weather_very_relevant = weather_relevant[(group.at[i,'DATETIME_UTC'] >= weather_relevant.DATETIME_UTC - timedelta(hours=12))
+                                                         &  (group.at[i,'DATETIME_UTC'] <= weather_relevant.DATETIME_UTC + timedelta(hours=12))]
                 weather_very_relevant["TIME_WEATHER_DELTA"] = abs(weather_relevant.DATETIME_UTC - group.at[i,'DATETIME_UTC'])
                 #print(weather_very_relevant.head())
                 index = int(weather_very_relevant[["TIME_WEATHER_DELTA"]].idxmin())
