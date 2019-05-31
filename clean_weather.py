@@ -5,7 +5,7 @@ from datetime import timedelta
 from tqdm import tqdm
 
 CLUSTER_SIZE = 20000
-DATASET = "bip_assignment/dataset_with_all_km.csv"
+DATASET = "bip_assignment/dataset.csv"
 
 
 def preprocess():
@@ -64,7 +64,7 @@ def preprocess():
 
         return dataset
 
-    dataset = pd.read_csv("bip_assignment/dataset_3.csv")
+    dataset = pd.read_csv("bip_assignment/dataset_3.csv", dtype={"STATION_ID": object, "STATION_ID_2": object, "STATION_ID_3": object, "STATION_ID_4": object})
 
     dataset = convert_weather(dataset)
 

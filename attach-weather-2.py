@@ -38,7 +38,7 @@ def preprocess():
 
 
 
-    dataset = pd.read_csv("bip_assignment/dataset_2.csv")
+    dataset = pd.read_csv("bip_assignment/dataset-station.csv", dtype={"STATION_ID": object, "STATION_ID_2": object, "STATION_ID_3": object, "STATION_ID_4": object})
 
     weather_df = pd.read_csv("bip_assignment/weather_train.csv")
 
@@ -46,19 +46,19 @@ def preprocess():
     dataset['START_DATETIME_UTC'] = pd.to_datetime(dataset['START_DATETIME_UTC'])
     dataset['END_DATETIME_UTC'] = pd.to_datetime(dataset['END_DATETIME_UTC'])
 
-    dataset['TEMPERATURE'] = 0
-    dataset['MAX_TEMPERATURE'] = 0
-    dataset['MIN_TEMPERATURE'] = 0
-    dataset['WEATHER'] = 0
-    dataset['DATETIME_UTC_WEATHER'] = 0
+    #dataset['TEMPERATURE'] = 0
+    #dataset['MAX_TEMPERATURE'] = 0
+    #dataset['MIN_TEMPERATURE'] = 0
+    #dataset['WEATHER'] = 0
+    #dataset['DATETIME_UTC_WEATHER'] = 0
 
 
     weather_df['DATETIME_UTC'] = pd.to_datetime(weather_df['DATETIME_UTC'])
-    grouped_dataset = dataset.groupby('STATION_ID')
+    #grouped_dataset = dataset.groupby('STATION_ID')
 
-    print(dataset[dataset['STATION_ID'] == np.nan].head())
+    #print(dataset[dataset['STATION_ID'] == np.nan].head())
 
-    compute_weather(grouped_dataset, weather_df)
+    #compute_weather(grouped_dataset, weather_df)
 
 
 

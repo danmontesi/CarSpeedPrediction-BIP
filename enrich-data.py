@@ -5,7 +5,7 @@ from datetime import timedelta
 from tqdm import tqdm
 
 CLUSTER_SIZE = 20000
-DATASET = "bip_assignment/dataset_with_all_km.csv"
+DATASET = "bip_assignment/dataset.csv"
 
 
 def preprocess():

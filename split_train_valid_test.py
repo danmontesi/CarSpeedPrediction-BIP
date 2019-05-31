@@ -27,6 +27,6 @@ def split(dataset):
 
     print('Done!')
 
-dataset = pd.read_csv("bip_assignment/dataset_4.csv")
+dataset = pd.read_csv("bip_assignment/dataset_4.csv", dtype={"STATION_ID": object, "STATION_ID_2": object, "STATION_ID_3": object, "STATION_ID_4": object})
 dataset['DATETIME_UTC'] = pd.to_datetime(dataset['DATETIME_UTC'])
 split(dataset)
