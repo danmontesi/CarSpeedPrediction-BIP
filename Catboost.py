@@ -21,8 +21,8 @@ class CatboostRegressor(ABC):
     Custom_metric is @1 for maximizing first result as good
     """
 
-    def __init__(self, train, test=None, learning_rate=0.5, iterations=20, max_depth=10, reg_lambda=6.0,
-                 custom_metric='AverageGain:top=1', one_hot_max_size = 50, include_test = True,
+    def __init__(self, train, test=None, cat_features=None, learning_rate=0.1, iterations=1000, max_depth=8, reg_lambda=6.0,
+                 custom_metric='AverageGain:top=1', one_hot_max_size = 30, include_test = True,
                  features_to_one_hot=None):
 
         self.features_to_drop = []
@@ -42,6 +42,7 @@ class CatboostRegressor(ABC):
 
         self.features_to_one_hot = features_to_one_hot
         self.ctb = None
+        self.cat_features = cat_features
         self.categorical_features = None
         self.train_features = None
         self.scores_batch = None
@@ -66,15 +67,15 @@ class CatboostRegressor(ABC):
         train_features = train_df
 
         features = list(train_features.drop('SPEED_AVG', axis=1).columns.values)
-        self.categorical_features = []
-        for f in features:
-            if isinstance(train_features.head(1)[f].values[0], str):
-                print(train_features.head(1)[f].values[0])
-                self.categorical_features.append(features.index(f))
-                print(f + ' is categorical!')
 
-        if len(self.categorical_features) == 0:
-            self.categorical_features = None
+        if self.cat_features is not None:
+            self.categorical_features = []
+
+            for f in self.cat_features:
+                    self.categorical_features.append(features.index(f))
+
+            if len(self.categorical_features) == 0:
+                self.categorical_features = None
 
         self.train_features = train_features.columns.values
         X_train = train_features.drop('SPEED_AVG', axis=1).values
@@ -93,7 +94,7 @@ class CatboostRegressor(ABC):
             test_df = self.test_df
             test_df = test_df.fillna(0)
 
-            if list(test_df.columns.values) == list(train_df.columns.values):
+            if list(test_df.columns.values) != list(train_df.columns.values):
                 print('NOT SAME SHAPE of train and test, fix it up')
 
             X_test = test_df.drop(['SPEED_AVG'], axis=1).values
@@ -131,7 +132,8 @@ class CatboostRegressor(ABC):
 
 
 if __name__ == '__main__':
-    model = CatboostRegressor(pd.read_csv('final_dataset/train.csv'), pd.read_csv('final_dataset/validation.csv'))
+    model = CatboostRegressor(pd.read_csv('final_dataset/train.csv').drop(['APPROX_TIME', 'DATETIME_UTC'], axis=1), pd.read_csv('final_dataset/validation.csv').drop(['APPROX_TIME', 'DATETIME_UTC'], axis=1),
+                              cat_features=['EVENT_DETAIL', 'EVENT_TYPE', 'WEEK_DAY', 'TIME_INTERVAL', 'ROAD_TYPE', 'DELTA_TIME', 'WEATHER'])
     model.fit()
 
 
