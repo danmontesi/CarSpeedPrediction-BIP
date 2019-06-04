@@ -44,19 +44,19 @@ def preprocess():
                 #print(interesting.SPEED_AVG.ravel()[0])
 
     print("##########################################################+")
-    grouped_dataset = dataset[(dataset['READ_INSTANT'] != 1) & (dataset['READ_INSTANT'] != -9999)].groupby('KEY')
-
-    for name, group in tqdm(grouped_dataset):
-        reduced_orig = dataset[dataset['KEY'] == name]
-
-        for i in tqdm(group.index):
-            interesting = reduced_orig[(reduced_orig['KM'] == group.at[i, 'KM']) & (
-                        reduced_orig['DATETIME_UTC'] == group.at[i, 'DATETIME_UTC'] - timedelta(minutes=15))]
-            # print(interesting.head())
-            if interesting.shape[0] > 0:
-                # print(interesting.SPEED_AVG)
-                dataset.loc[i, 'PREC_SPEED'] = float(interesting.SPEED_AVG.ravel()[0])
-                # print(interesting.SPEED_AVG.ravel()[0])
+    #grouped_dataset = dataset[(dataset['READ_INSTANT'] != 1) & (dataset['READ_INSTANT'] != -9999)].groupby('KEY')
+#
+    #for name, group in tqdm(grouped_dataset):
+    #    reduced_orig = dataset[dataset['KEY'] == name]
+#
+    #    for i in tqdm(group.index):
+    #        interesting = reduced_orig[(reduced_orig['KM'] == group.at[i, 'KM']) & (
+    #                    reduced_orig['DATETIME_UTC'] == group.at[i, 'DATETIME_UTC'] - timedelta(minutes=15))]
+    #        # print(interesting.head())
+    #        if interesting.shape[0] > 0:
+    #            # print(interesting.SPEED_AVG)
+    #            dataset.loc[i, 'PREC_SPEED'] = float(interesting.SPEED_AVG.ravel()[0])
+    #            # print(interesting.SPEED_AVG.ravel()[0])
 
 
 
