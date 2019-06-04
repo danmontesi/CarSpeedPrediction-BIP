@@ -1,6 +1,7 @@
 import math
 import time
 from abc import ABC
+from datetime import timedelta
 from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
@@ -115,6 +116,7 @@ class CatboostRegressor(ABC):
         print('fit done')
 
 
+
     def recommend_batch(self):
         test_df = self.test_df
 
@@ -129,12 +131,84 @@ class CatboostRegressor(ABC):
             cat_features=self.categorical_features
         )
 
+    def predict(self, topredict):
+        X_test = topredict.drop(['SPEED_AVG', 'DATETIME_UTC', 'KM'], axis=1).fillna(0).values
+        out = self.ctb.predict(X_test, verbose = True)
+        print(out)
+        return out
+
+
+
+def catchLastSpeed(dataset, iter):
+    grouped_dataset = dataset[(dataset['READ_INSTANT'] == iter)].groupby('KEY')
+
+    for name, group in tqdm(grouped_dataset):
+        reduced_orig = dataset[dataset['KEY'] == name]
+
+        for i in (group.index):
+            interesting = reduced_orig[(reduced_orig['KM'] == group.at[i, 'KM']) & (
+                    reduced_orig['DATETIME_UTC'] == group.at[i, 'DATETIME_UTC'] - timedelta(minutes=15))]
+            # print(interesting.head())
+            if interesting.shape[0] > 0:
+                # print(interesting.SPEED_AVG)
+                dataset.loc[i, 'PREC_SPEED'] = float(interesting.PREDICTION.ravel()[0])
+                # print(interesting.SPEED_AVG.ravel()[0])
+
 
 
 if __name__ == '__main__':
-    model = CatboostRegressor(pd.read_csv('final_dataset/train.csv').drop(['APPROX_TIME', 'DATETIME_UTC'], axis=1), pd.read_csv('final_dataset/validation.csv').drop(['APPROX_TIME', 'DATETIME_UTC'], axis=1),
+    pd.set_option('display.expand_frame_repr', False)
+    pd.set_option('display.max_columns', 500)
+
+
+    validation_data = pd.read_csv('final_dataset/test_2.csv').drop(['APPROX_TIME'], axis=1)
+    validation_data['DATETIME_UTC'] = pd.to_datetime(validation_data['DATETIME_UTC'])
+    #validation_data['START_DATETIME_UTC'] = pd.to_datetime(validation_data['START_DATETIME_UTC'])
+    #validation_data['END_DATETIME_UTC'] = pd.to_datetime(validation_data['END_DATETIME_UTC'])
+
+    validation_train_data = pd.read_csv('final_dataset/test.csv').drop(['APPROX_TIME'], axis=1)
+
+
+
+    model = CatboostRegressor(pd.read_csv('final_dataset/train.csv').drop(['APPROX_TIME', 'DATETIME_UTC', 'KM'], axis=1), validation_train_data.drop(['DATETIME_UTC', 'KM'], axis=1),
                               cat_features=['EVENT_DETAIL', 'EVENT_TYPE', 'WEEK_DAY', 'TIME_INTERVAL', 'ROAD_TYPE', 'DELTA_TIME', 'WEATHER'])
     model.fit()
+
+    validation_data["PREDICTION"] = float(0)
+
+    out=model.predict(validation_data[validation_data.READ_INSTANT==1])
+    validation_data.at[validation_data.READ_INSTANT==1, "PREDICTION"] = out
+    print(validation_data.head(25))
+
+    catchLastSpeed(validation_data, 2)
+    out=model.predict(validation_data[validation_data.READ_INSTANT == 2])
+    validation_data.at[validation_data.READ_INSTANT == 2, "PREDICTION"] = out
+
+    catchLastSpeed(validation_data, 3)
+    out=model.predict(validation_data[validation_data.READ_INSTANT == 3])
+    validation_data.at[validation_data.READ_INSTANT == 3, "PREDICTION"] = out
+
+
+
+    catchLastSpeed(validation_data, 4)
+    out=model.predict(validation_data[validation_data.READ_INSTANT == 4])
+    validation_data.at[validation_data.READ_INSTANT == 4, "PREDICTION"] = out
+
+    validation_data['ERROR'] = abs(validation_data['PREDICTION'] - validation_data['SPEED_AVG'])
+
+    validation_data['ERROR_PER'] = validation_data['ERROR']/validation_data['SPEED_AVG'] * 100
+
+
+
+
+
+    print(validation_data.head(25))
+    print(validation_data[validation_data.READ_INSTANT == 4]['ERROR'].describe())
+    print(validation_data[validation_data.READ_INSTANT == 4]['ERROR_PER'].describe())
+
+
+
+
 
 
 
