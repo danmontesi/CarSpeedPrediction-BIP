@@ -12,6 +12,7 @@ def split(dataset):
     col_to_drop = 'Unnamed: 0,Unnamed: 0.1,START_DATETIME_UTC,END_DATETIME_UTC,KM_END,KM_START,KEY_2_x,SPEED_SD,SPEED_MIN,SPEED_MAX,N_VEHICLES,KEY_2_y,STATION_ID,STATION_ID_2,STATION_ID_3,STATION_ID_4,DATETIME_UTC_WEATHER'.split(
         ',')
     dataset.drop(col_to_drop, axis=1, inplace=True)
+    dataset.to_csv('final_dataset/merged.csv', index=False)
 
     train = dataset[dataset.DATETIME_UTC <= thresh_train]
 

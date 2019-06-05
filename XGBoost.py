@@ -64,6 +64,7 @@ class XGBoostRegressor(ABC):
 
     def fit(self):
         train_df = self.train_df
+        train_df = self.preprocess_dataset(train_df)
         train_df = train_df.fillna(0)
 
         # PREPROCESS: prepare for train
@@ -101,13 +102,15 @@ class XGBoostRegressor(ABC):
         for i in tqdm(self.cat_features):
             one_hot = pd.get_dummies(dataset[i])
             dataset = dataset.drop(i, axis=1)
-            dataset = dataset.join(one_hot)
+            dataset = dataset.join(one_hot, rsuffix='_y')
 
         return dataset
 
 
 if __name__ == '__main__':
-    model = XGBoostRegressor(pd.read_csv('final_dataset/train.csv'), pd.read_csv('final_dataset/validation.csv'), cat_features=['EVENT_DETAIL', 'EVENT_TYPE', 'WEEK_DAY', 'TIME_INTERVAL', 'ROAD_TYPE', 'DELTA_TIME', 'WEATHER'])
+    model = XGBoostRegressor(pd.read_csv('final_dataset/train.csv'),
+                             pd.read_csv('final_dataset/validation.csv'),
+                             cat_features=['EVENT_DETAIL', 'EVENT_TYPE', 'WEEK_DAY', 'TIME_INTERVAL', 'ROAD_TYPE', 'DELTA_TIME', 'WEATHER'])
     model.fit()
 
 

@@ -22,7 +22,7 @@ class CatboostRegressor(ABC):
     Custom_metric is @1 for maximizing first result as good
     """
 
-    def __init__(self, train, test=None, cat_features=None, learning_rate=0.05, iterations=1000, max_depth=10, reg_lambda=6.0,
+    def __init__(self, train, test=None, cat_features=None, learning_rate=0.1, iterations=1000, max_depth=10, reg_lambda=6.0,
                  custom_metric='AverageGain:top=1', one_hot_max_size = 30, include_test = True,
                  features_to_one_hot=None):
 
@@ -170,8 +170,9 @@ if __name__ == '__main__':
 
 
 
-    model = CatboostRegressor(pd.read_csv('final_dataset/train.csv').drop(['Unnamed: 0.1.1', 'Unnamed: 0.1.1.1', 'APPROX_TIME', 'DATETIME_UTC', 'KM', 'KEY', 'DELTA_TIME'], axis=1),
-                              validation_train_data.drop(['Unnamed: 0.1.1', 'Unnamed: 0.1.1.1','DATETIME_UTC', 'KM', 'KEY', 'DELTA_TIME'], axis=1),
+    model = CatboostRegressor(pd.read_csv('final_dataset/merged.csv', dtype={"STATION_ID": object, "STATION_ID_2": object, "STATION_ID_3": object, "STATION_ID_4": object}).drop(['Unnamed: 0.1.1', 'Unnamed: 0.1.1.1', 'APPROX_TIME', 'DATETIME_UTC', 'KM', 'KEY', 'DELTA_TIME'], axis=1),
+                              #validation_train_data.drop(['Unnamed: 0.1.1', 'Unnamed: 0.1.1.1','DATETIME_UTC', 'KM', 'KEY', 'DELTA_TIME'], axis=1),
+                              include_test=False,
                               cat_features=['EVENT_DETAIL', 'EVENT_TYPE', 'WEEK_DAY', 'TIME_INTERVAL', 'ROAD_TYPE', 'WEATHER'])
     model.fit()
 
