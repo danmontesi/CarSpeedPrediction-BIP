@@ -10,7 +10,7 @@ from catboost import CatBoost, Pool, CatBoostRegressor
 from copy import deepcopy
 import pickle
 import pandas as pd
-
+import random
 tqdm.pandas()
 
 
@@ -142,7 +142,10 @@ class CatboostRegressor(ABC):
         if self.test_with_weights is not None:
             out = self.ctb.predict(self.test_with_weights, verbose=True)
         else:
+            if 'SPEED_AVG' in topredict.columns.values:
+                topredict.drop('SPEED_AVG', axis=1, inplace=True)
             X_test = topredict.drop(['DATETIME_UTC', 'KM', 'KEY', 'DELTA_TIME'], axis=1).fillna(0).values
+
             out = self.ctb.predict(X_test, verbose = True)
         print(out)
         return out
@@ -165,8 +168,10 @@ def catchLastSpeed(dataset, iter):
                 # print(interesting.SPEED_AVG.ravel()[0])
 
 
+def train_read_instant(train, validation_data, iter, catch=True):
 
-def train_read_instant(train, validation_data, iter, catch=True, mode=''):
+
+
     model = CatboostRegressor(train,
                               validation_data[validation_data.READ_INSTANT == iter].drop('PREDICTION', axis=1),
                               include_test=True,
@@ -183,54 +188,6 @@ def train_read_instant(train, validation_data, iter, catch=True, mode=''):
     return validation_data
 
 
-if __name__ == '__main__':
-    pd.set_option('display.expand_frame_repr', False)
-    pd.set_option('display.max_columns', 500)
-
-    validation_data = pd.read_csv('preprocess-test/test_final.csv').drop(['APPROX_TIME'], axis=1)
-    validation_data['DATETIME_UTC'] = pd.to_datetime(validation_data['DATETIME_UTC'])
-    #validation_data['START_DATETIME_UTC'] = pd.to_datetime(validation_data['START_DATETIME_UTC'])
-    #validation_data['END_DATETIME_UTC'] = pd.to_datetime(validation_data['END_DATETIME_UTC'])
-
-    #validation_train_data = pd.read_csv('final_dataset/test.csv').drop(['APPROX_TIME'], axis=1)
-
-    train = pd.read_csv('final_dataset/merged.csv', dtype={"STATION_ID": object, "STATION_ID_2": object, "STATION_ID_3": object,
-                                                   "STATION_ID_4": object}).drop(
-        ['Unnamed: 0.1.1', 'Unnamed: 0.1.1.1', 'APPROX_TIME', 'KM', 'KEY', 'DATETIME_UTC', 'DELTA_TIME'], axis=1)
-
-    train = train
-
-    validation_data["PREDICTION"] = float(0)
-
-    validation_data = train_read_instant(train, validation_data, 1, catch=True)
-
-    validation_data = train_read_instant(train, validation_data, 2, catch=True)
-
-    validation_data = train_read_instant(train, validation_data, 3, catch=True)
-
-    validation_data = train_read_instant(train, validation_data, 4, catch=False)
-
-    #validation_data['ERROR'] = abs(validation_data['PREDICTION'] - validation_data['SPEED_AVG'])
-
-    #validation_data['ERROR_PER'] = validation_data['ERROR']/validation_data['SPEED_AVG'] * 100
-
-
-    out_full = validation_data.PREDICTION
-
-
-
-    validation_data.to_csv("preprocess-test/output.csv")
-
-    print(validation_data.head(25))
-    #print(validation_data[validation_data.READ_INSTANT == 4]['ERROR'].describe())
-    #print(validation_data[validation_data.READ_INSTANT == 4]['ERROR_PER'].describe())
-
-
-
-
-
-
-
 def old_train():
     pd.set_option('display.expand_frame_repr', False)
     pd.set_option('display.max_columns', 500)
@@ -241,13 +198,13 @@ def old_train():
     #validation_data['START_DATETIME_UTC'] = pd.to_datetime(validation_data['START_DATETIME_UTC'])
     #validation_data['END_DATETIME_UTC'] = pd.to_datetime(validation_data['END_DATETIME_UTC'])
 
-    validation_train_data = pd.read_csv('final_dataset/test.csv').drop(['APPROX_TIME'], axis=1)
+    #validation_train_data = pd.read_csv('final_dataset/test.csv').drop(['APPROX_TIME'], axis=1)
 
 
     model = CatboostRegressor(pd.read_csv('final_dataset/merged.csv', dtype={"STATION_ID": object, "STATION_ID_2": object, "STATION_ID_3": object, "STATION_ID_4": object}).drop(['Unnamed: 0.1.1', 'Unnamed: 0.1.1.1', 'APPROX_TIME', 'DATETIME_UTC', 'KM', 'KEY', 'DELTA_TIME'], axis=1),
                               #validation_train_data.drop(['Unnamed: 0.1.1', 'Unnamed: 0.1.1.1','DATETIME_UTC', 'KM', 'KEY', 'DELTA_TIME'], axis=1),
                               include_test=False,
-                              cat_features=['EVENT_DETAIL', 'EVENT_TYPE', 'WEEK_DAY', 'TIME_INTERVAL', 'ROAD_TYPE', 'WEATHER'])
+                              cat_features=['EVENT_DETAIL', 'EVENT_TYPE', 'WEEK_DAY', 'TIME_INTERVAL', 'ROAD_TYPE', 'WEATHER', 'READ_INSTANT'])
     model.fit()
 
     validation_data["PREDICTION"] = float(0)
@@ -271,13 +228,93 @@ def old_train():
     validation_data.at[validation_data.READ_INSTANT == 4, "PREDICTION"] = out
     print(validation_data.head(25))
 
-    #validation_data['ERROR'] = abs(validation_data['PREDICTION'] - validation_data['SPEED_AVG'])
-
-    #validation_data['ERROR_PER'] = validation_data['ERROR']/validation_data['SPEED_AVG'] * 100
-
 
     validation_data.to_csv("preprocess-test/output.csv")
     print(validation_data.head(25))
-    #print(validation_data[validation_data.READ_INSTANT == 4]['ERROR'].describe())
-    #print(validation_data[validation_data.READ_INSTANT == 4]['ERROR_PER'].describe())
 
+def validate(train, validation_data):
+
+    validation_data = validation_data[validation_data.READ_INSTANT == 1]
+    while True:
+        one_hot_max_size = random.randint(6, 50)
+        max_depth = random.randint(3,12)
+        reg_lambda = random.uniform(1, 8)
+
+        print('Fitting with onehot_max: {}, max_depth: {}, reg_lambda: {}'.format(one_hot_max_size, max_depth, reg_lambda))
+        model = CatboostRegressor(train, validation_data,
+                                  include_test=True,
+                                  cat_features=['EVENT_DETAIL', 'EVENT_TYPE', 'WEEK_DAY', 'TIME_INTERVAL', 'ROAD_TYPE',
+                                                'WEATHER'],
+                                  one_hot_max_size=one_hot_max_size, max_depth=max_depth, reg_lambda=reg_lambda, learning_rate=0.3, iterations=100)
+        model.fit()
+        print('onehot_max: {}, max_depth: {}, reg_lambda: {}'.format(one_hot_max_size, max_depth,
+                                                                                  reg_lambda))
+
+
+def train_separate_read_instant():
+    validation_data = pd.read_csv('preprocess-test/test_final.csv').drop(['APPROX_TIME'], axis=1)
+    validation_data['DATETIME_UTC'] = pd.to_datetime(validation_data['DATETIME_UTC'])
+    # validation_data['START_DATETIME_UTC'] = pd.to_datetime(validation_data['START_DATETIME_UTC'])
+    # validation_data['END_DATETIME_UTC'] = pd.to_datetime(validation_data['END_DATETIME_UTC'])
+
+    # validation_train_data = pd.read_csv('final_dataset/test.csv').drop(['APPROX_TIME'], axis=1)
+
+    train = pd.read_csv('final_dataset/merged.csv',
+                        dtype={"STATION_ID": object, "STATION_ID_2": object, "STATION_ID_3": object,
+                               "STATION_ID_4": object}).drop(
+        ['Unnamed: 0.1.1', 'Unnamed: 0.1.1.1', 'APPROX_TIME', 'KM', 'KEY', 'DATETIME_UTC', 'DELTA_TIME'], axis=1)
+
+    # train_correct = train[train.READ_INSTANT == 2]
+    # # Adding bias to remove dependancy from prec value
+    # for i in tqdm(train_correct.index):
+    #     train.at[i, 'PREC_SPEED'] = train.at[i, 'PREC_SPEED'] + (6 / random.randint(1, 3)) * random.randint(-3, 3)
+    #
+    # train_correct = train[train.READ_INSTANT == 3]
+    # # Adding bias to remove dependancy from prec value
+    # for i in tqdm(train_correct.index):
+    #     train.at[i, 'PREC_SPEED'] = train.at[i, 'PREC_SPEED'] + (7 / random.randint(1, 3)) * random.randint(-3, 3)
+    #
+    # train_correct = train[train.READ_INSTANT == 4]
+    # # Adding bias to remove dependancy from prec value
+    # for i in tqdm(train_correct.index):
+    #     train.at[i, 'PREC_SPEED'] = train.at[i, 'PREC_SPEED'] + (8 / random.randint(1, 3)) * random.randint(-3, 3)
+
+    validation_data["PREDICTION"] = float(0)
+
+    validation_data = train_read_instant(train, validation_data, 1, catch=True)
+
+    validation_data = train_read_instant(train, validation_data, 2, catch=True)
+
+    validation_data = train_read_instant(train, validation_data, 3, catch=True)
+
+    validation_data = train_read_instant(train, validation_data, 4, catch=False)
+
+    # validation_data['ERROR'] = abs(validation_data['PREDICTION'] - validation_data['SPEED_AVG'])
+
+    # validation_data['ERROR_PER'] = validation_data['ERROR']/validation_data['SPEED_AVG'] * 100
+
+    out_full = validation_data.PREDICTION
+
+    validation_data.to_csv("preprocess-test/output.csv")
+
+    print(validation_data.head(25))
+    # print(validation_data[validation_data.READ_INSTANT == 4]['ERROR'].describe())
+    # print(validation_data[validation_data.READ_INSTANT == 4]['ERROR_PER'].describe())
+
+
+if __name__ == '__main__':
+    pd.set_option('display.expand_frame_repr', False)
+    pd.set_option('display.max_columns', 500)
+
+
+    #train_separate_read_instant()
+    #train_once()
+
+    train = pd.read_csv('final_dataset/merged.csv',
+                        dtype={"STATION_ID": object, "STATION_ID_2": object, "STATION_ID_3": object,
+                               "STATION_ID_4": object}).drop(
+        ['Unnamed: 0.1.1', 'Unnamed: 0.1.1.1', 'APPROX_TIME', 'KM', 'KEY', 'DATETIME_UTC', 'DELTA_TIME'], axis=1)
+    validation_data = pd.read_csv('preprocess-test/test_final.csv').drop(['APPROX_TIME'], axis=1)
+    validation_data['DATETIME_UTC'] = pd.to_datetime(validation_data['DATETIME_UTC'])
+
+    validate(train, validation_data)

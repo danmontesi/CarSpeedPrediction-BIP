@@ -14,6 +14,16 @@ def preprocess():
 
     speeds_df['DATETIME_UTC'] = pd.to_datetime(speeds_df['DATETIME_UTC'])
 
+    if 'SPEED_AVG' not in speeds_df.columns.values:
+        orig_df = pd.read_csv("../bip_assignment/test/speeds_test.csv")
+        orig_df['DATETIME_UTC'] = pd.to_datetime(orig_df['DATETIME_UTC'])
+
+        key_1 = set(speeds_df['KEY'])
+        key_2 = set(orig_df['KEY'])
+        print(key_1 - key_2)
+
+        speeds_df = speeds_df.merge(orig_df[['KEY', 'KM', 'DATETIME_UTC', 'SPEED_AVG']],
+                                    on=['KEY', 'KM', 'DATETIME_UTC'], how='inner', )
 
     #speeds_df = speeds_df[speeds_df.READ_INSTANT == 1]
 
