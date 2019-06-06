@@ -21,11 +21,11 @@ def compute_weather(key):
     dataset['START_DATETIME_UTC'] = pd.to_datetime(dataset['START_DATETIME_UTC'])
     dataset['END_DATETIME_UTC'] = pd.to_datetime(dataset['END_DATETIME_UTC'])
 
-    dataset['TEMPERATURE'] = 0
-    dataset['MAX_TEMPERATURE'] = 0
-    dataset['MIN_TEMPERATURE'] = 0
-    dataset['WEATHER'] = 0
-    dataset['DATETIME_UTC_WEATHER'] = 0
+    #dataset['TEMPERATURE'] = 0
+    #dataset['MAX_TEMPERATURE'] = 0
+    #dataset['MIN_TEMPERATURE'] = 0
+    #dataset['WEATHER'] = 0
+    #dataset['DATETIME_UTC_WEATHER'] = 0
 
     weather_df['DATETIME_UTC'] = pd.to_datetime(weather_df['DATETIME_UTC'])
 
@@ -59,7 +59,7 @@ def compute_weather(key):
 
 dataset_total = pd.read_csv("bip_assignment/dataset_2.csv")
 
-stations = set(dataset_total["STATION_IDparallel-attach-weather.py"])
+stations = set(dataset_total["STATION_ID"])
 
 print(len(set(dataset_total["STATION_ID"])))
 
