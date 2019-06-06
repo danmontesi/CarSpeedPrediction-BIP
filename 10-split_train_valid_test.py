@@ -14,17 +14,17 @@ def split(dataset):
     dataset.drop(col_to_drop, axis=1, inplace=True)
     dataset.to_csv('final_dataset/merged.csv', index=False)
 
-    train = dataset[dataset.DATETIME_UTC <= thresh_train]
+    #train = dataset[dataset.DATETIME_UTC <= thresh_train]
 
-    validation = dataset[(dataset.DATETIME_UTC > thresh_train)&(dataset.DATETIME_UTC <= thresh_test)]
+    #validation = dataset[(dataset.DATETIME_UTC > thresh_train)&(dataset.DATETIME_UTC <= thresh_test)]
 
-    test = dataset[(dataset.DATETIME_UTC > thresh_test)]
+    #test = dataset[(dataset.DATETIME_UTC > thresh_test)]
 
-    train.to_csv('final_dataset/train.csv', index=False)
+    #train.to_csv('final_dataset/train.csv', index=False)
 
-    validation.to_csv('final_dataset/validation.csv', index=False)
+    #validation.to_csv('final_dataset/validation.csv', index=False)
 
-    test.to_csv('final_dataset/test.csv', index=False)
+    #test.to_csv('final_dataset/test.csv', index=False)
 
     print('Done!')
 

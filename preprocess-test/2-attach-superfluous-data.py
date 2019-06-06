@@ -15,7 +15,7 @@ def preprocess():
     speeds_df['END_DATETIME_UTC'] = pd.to_datetime(speeds_df['END_DATETIME_UTC'])
     speeds_df['APPROX_TIME'] = pd.to_datetime(speeds_df['APPROX_TIME'])
 
-    speeds_df = speeds_df.merge(sup_df, on=['KEY', 'KM', 'TIME_INTERVAL'])
+    speeds_df = speeds_df.merge(sup_df, on=['KEY', 'KM', 'WEEK_DAY', 'TIME_INTERVAL'])
 
     speeds_df['DELTA_TIME'] = speeds_df['DATETIME_UTC'] - speeds_df['APPROX_TIME']
 

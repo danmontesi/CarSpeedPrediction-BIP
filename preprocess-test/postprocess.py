@@ -16,18 +16,19 @@ def preprocess():
     orig_df = pd.read_csv("../bip_assignment/test/speeds_test.csv")
     orig_df['DATETIME_UTC'] = pd.to_datetime(orig_df['DATETIME_UTC'])
 
+    key_1=set(speeds_df['KEY'])
+    key_2 = set(orig_df['KEY'])
+    print(key_1-key_2)
 
+    speeds_df=speeds_df.merge(orig_df[['KEY', 'KM', 'DATETIME_UTC', 'SPEED_AVG']], on=['KEY', 'KM', 'DATETIME_UTC'], how='inner', )
+    key_2 = set(speeds_df['KEY'])
+    print(key_1 - key_2)
 
-    #final=pd.DataFrame(columns=['KEY', 'KM', 'DATETIME_UTC','PREDICTION_STEP', 'SPEED_AVG'])
-    grouped = speeds_df.groupby(['KEY', 'KM', 'DATETIME_UTC', 'READ_INSTANT'])
+    speeds_df = speeds_df[speeds_df.READ_INSTANT == 3]
 
-    print(grouped.mean())
-    #FIXME: DOES NOT WORK!!!
-
-    grouped=grouped.merge(orig_df[['KEY', 'KM', 'DATETIME_UTC', 'SPEED_AVG']], on=['KEY', 'KM', 'DATETIME_UTC'], how='inner', )
-    print(grouped.head(25))
-    print(grouped.shape[0])
-    print(mean_absolute_error(grouped['PREDICTION'], grouped['SPEED_AVG']))
+    print(speeds_df.head(25))
+    print(speeds_df.shape[0])
+    print(mean_absolute_error(speeds_df['PREDICTION'], speeds_df['SPEED_AVG']))
 
 
 if __name__ == "__main__":

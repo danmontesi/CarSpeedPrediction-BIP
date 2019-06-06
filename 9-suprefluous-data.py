@@ -28,15 +28,17 @@ def preprocess():
     speeds_df['DATETIME_UTC'] = pd.to_datetime(speeds_df['DATETIME_UTC'])
     speeds_df['TIME_INTERVAL'] = speeds_df['DATETIME_UTC'].apply(categorizeData)
 
-    grouped_events = speeds_df.groupby(['KEY', 'KM', 'TIME_INTERVAL'])
+    speeds_df['WEEK_DAY'] = speeds_df['DATETIME_UTC'].apply(lambda x: x.weekday())
 
-    dataset = pd.DataFrame(columns=['KEY', 'KM', 'TIME_INTERVAL', 'AVG_ALL_DATASET', 'STD_DEV_ALL_DATASET'])
+    grouped_events = speeds_df.groupby(['KEY', 'KM', 'WEEK_DAY', 'TIME_INTERVAL'])
+
+    dataset = pd.DataFrame(columns=['KEY', 'KM', 'WEEK_DAY', 'TIME_INTERVAL', 'AVG_ALL_DATASET', 'STD_DEV_ALL_DATASET'])
 
 
 
     for name, group in tqdm(grouped_events):
         #print(name)
-        dataset=dataset.append({'KEY':name[0], 'KM':name[1], 'TIME_INTERVAL':name[2], 'AVG_ALL_DATASET':group.SPEED_AVG.mean(), 'STD_DEV_ALL_DATASET':group.SPEED_AVG.std()}, ignore_index=True)
+        dataset=dataset.append({'KEY':name[0], 'KM':name[1], 'WEEK_DAY':name[2], 'TIME_INTERVAL':name[3], 'AVG_ALL_DATASET':group.SPEED_AVG.mean(), 'STD_DEV_ALL_DATASET':group.SPEED_AVG.std()}, ignore_index=True)
 
 
     dataset.to_csv("superfluous_data.csv", index=False)
